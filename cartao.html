@@ -5,106 +5,121 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cartão Digital</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Display", sans-serif; }
-    body { background: #000; color: #fff; display: flex; justify-content: center; min-height: 100vh; background-size: cover; background-position: center; }
-    .backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(25px); z-index: 1; }
-    .card-wrapper { position: relative; z-index: 2; width: 100%; max-width: 420px; padding: 20px; text-align: center; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; }
     
-    /* Design Estilo iOS Glassmorphism */
-    .avatar { width: 110px; height: 110px; border-radius: 50%; object-fit: cover; border: 3px solid rgba(255,255,255,0.3); margin-top: 40px; }
-    h1 { font-size: 1.5rem; font-weight: 700; margin-top: 12px; }
-    
-    .ios-btn {
-      display: flex; align-items: center; justify-content: center; gap: 12px;
-      width: 100%; padding: 16px; margin-top: 12px;
-      background: rgba(255, 255, 255, 0.12);
-      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 20px; color: #fff; text-decoration: none; font-weight: 600;
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); transition: transform 0.2s;
+    /* Corpo da página com o Banner de Fundo */
+    body {
+      background-color: #0f172a;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
     }
-    .ios-btn:active { transform: scale(0.98); }
-    .ios-btn-whatsapp { background: #25D366; color: #fff; border: none; }
 
-    .gallery { margin-top: 30px; text-align: left; }
-    .gallery-item { background: rgba(255, 255, 255, 0.08); border-radius: 16px; overflow: hidden; margin-top: 15px; border: 1px solid rgba(255,255,255,0.1); }
-    .gallery-item img, .gallery-item video { width: 100%; display: block; }
-    .gallery-item p { padding: 12px; font-size: 0.9rem; font-weight: 500; }
+    /* Máscara de escurecimento/desfoque por cima do banner */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      z-index: 1;
+    }
+
+    /* Cartão Principal */
+    .card-container {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 400px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 30px 20px;
+      text-align: center;
+      color: #fff;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Estilo da Foto de Perfil */
+    .avatar-img {
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid rgba(255, 255, 255, 0.4);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+      margin-bottom: 15px;
+    }
   </style>
 </head>
 <body>
-<div class="backdrop"></div>
-<div class="card-wrapper">
-  <img id="avatar" class="avatar" src="https://via.placeholder.com/150">
-  <h1 id="nome">Carregando...</h1>
 
-  <!-- Botão WhatsApp -->
-  <div id="waBox"></div>
+  <!-- Camada de fundo com desfoque -->
+  <div class="overlay"></div>
 
-  <!-- Botões Redes Sociais iOS -->
-  <div id="socialBox"></div>
+  <!-- Cartão do Cliente -->
+  <div class="card-container">
+    <!-- Imagem de Perfil com imagem genérica de fallback -->
+    <img id="fotoPerfil" class="avatar-img" src="https://via.placeholder.com/150?text=Perfil" alt="Foto de Perfil">
+    
+    <h2 id="nomeCliente">Carregando...</h2>
+  </div>
 
-  <!-- Galeria Produtos e Serviços -->
-  <div class="gallery" id="galleryBox"></div>
-</div>
+  <script>
+    // Configuração do Supabase
+    const SUPABASE_URL = 'https://seu-projeto.supabase.co';
+    const SUPABASE_ANON_KEY = 'sua-chave-anon-aqui';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-<script>
-  const SUPABASE_URL = 'https://ebqxskekvnyhqmigwdla.supabase.co';
-  const SUPABASE_ANON_KEY = 'sb_publishable_Ml3YnD-a-5eQx7J_oJ_Sfg_WicgJy-a';
-  const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    async function carregarCartao() {
+      // 1. Pega o código da URL (ex: cartao.html?code=CARD-123456)
+      const urlParams = new URLSearchParams(window.location.search);
+      const codigo = urlParams.get('code');
 
-  const code = new URLSearchParams(window.location.search).get('code');
+      if (!codigo) {
+        console.error('Código não encontrado na URL');
+        return;
+      }
 
-  async function render() {
-    if (!code) return;
-    const { data } = await db.from('cartoes').select('*').eq('codigo_unico', code).single();
-    if (!data) return;
+      // 2. Busca os dados no banco de dados Supabase
+      const { data, error } = await db
+        .from('cartoes')
+        .select('foto_perfil, banner_fundo, nome')
+        .eq('codigo_unico', codigo)
+        .single();
 
-    if (data.banner_fundo) document.body.style.backgroundImage = `url('${data.banner_fundo}')`;
-    if (data.foto_perfil) document.getElementById('avatar').src = data.foto_perfil;
-    document.getElementById('nome').innerText = data.nome || '';
+      if (error || !data) {
+        console.error('Erro ao buscar cartão:', error);
+        return;
+      }
 
-    // WhatsApp Action
-    if (data.whatsapp) {
-      document.getElementById('waBox').innerHTML = `
-        <a href="https://wa.me/${data.whatsapp}" target="_blank" class="ios-btn ios-btn-whatsapp">
-          💬 Adicionar Contato / WhatsApp
-        </a>
-      `;
+      // 3. Aplica a Foto de Perfil no <img>
+      if (data.foto_perfil) {
+        document.getElementById('fotoPerfil').src = data.foto_perfil;
+      }
+
+      // 4. Aplica o Banner como Plano de Fundo do <body>
+      if (data.banner_fundo) {
+        document.body.style.backgroundImage = `url('${data.banner_fundo}')`;
+      }
+
+      // 5. Atualiza o nome
+      if (data.nome) {
+        document.getElementById('nomeCliente').innerText = data.nome;
+      }
     }
 
-    // Social Links
-    const socialBox = document.getElementById('socialBox');
-    if (data.links_sociais) {
-      data.links_sociais.forEach(s => {
-        socialBox.innerHTML += `
-          <a href="${s.url}" target="_blank" class="ios-btn">
-            🔗 ${s.rede.toUpperCase()}
-          </a>
-        `;
-      });
-    }
-
-    // Showcase Products
-    const galleryBox = document.getElementById('galleryBox');
-    if (data.produtos_servicos) {
-      data.produtos_servicos.forEach(p => {
-        const mediaTag = p.tipo === 'video' 
-          ? `<video src="${p.url}" controls></video>`
-          : `<img src="${p.url}">`;
-        
-        galleryBox.innerHTML += `
-          <div class="gallery-item">
-            ${mediaTag}
-            <p>${p.titulo}</p>
-          </div>
-        `;
-      });
-    }
-  }
-
-  render();
-</script>
+    // Executa ao carregar a página
+    carregarCartao();
+  </script>
 </body>
 </html>
