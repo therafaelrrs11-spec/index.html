@@ -7,22 +7,23 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     
-    /* Corpo da página com o Banner de Fundo */
+    /* Plano de Fundo com Banner */
     body {
       background-color: #0f172a;
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
+      background-attachment: fixed;
       min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 20px;
+      padding: 20px 15px;
     }
 
-    /* Máscara de escurecimento/desfoque por cima do banner */
+    /* Máscara de escurecimento e desfoque */
     .overlay {
       position: fixed;
       inset: 0;
@@ -32,93 +33,252 @@
       z-index: 1;
     }
 
-    /* Cartão Principal */
+    /* Cartão Principal (Glassmorphism) */
     .card-container {
       position: relative;
       z-index: 2;
       width: 100%;
-      max-width: 400px;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      max-width: 420px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.18);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border-radius: 24px;
-      padding: 30px 20px;
+      padding: 32px 24px;
       text-align: center;
-      color: #fff;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      color: #ffffff;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
     }
 
-    /* Estilo da Foto de Perfil */
+    /* Avatar / Foto de Perfil */
+    .avatar-container {
+      margin-bottom: 16px;
+    }
+
     .avatar-img {
       width: 110px;
       height: 110px;
       border-radius: 50%;
       object-fit: cover;
-      border: 3px solid rgba(255, 255, 255, 0.4);
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-      margin-bottom: 15px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Textos do Perfil */
+    .profile-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .profile-title {
+      font-size: 0.95rem;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 16px;
+    }
+
+    .profile-bio {
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.85);
+      line-height: 1.5;
+      margin-bottom: 24px;
+      white-space: pre-line;
+    }
+
+    /* Lista de Botões de Links */
+    .links-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .btn-link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 14px 20px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 14px;
+      color: #ffffff;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .btn-link:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: translateY(-2px);
+    }
+
+    /* Esconde botões que não tiverem informação */
+    .hidden {
+      display: none !important;
+    }
+
+    /* Caixa do PIX */
+    .pix-box {
+      margin-top: 20px;
+      padding: 14px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 12px;
+      border: 1px dashed rgba(255, 255, 255, 0.3);
+    }
+    
+    .pix-title {
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .pix-key {
+      font-size: 0.85rem;
+      word-break: break-all;
+      font-family: monospace;
     }
   </style>
 </head>
 <body>
 
-  <!-- Camada de fundo com desfoque -->
+  <!-- Camada de fundo -->
   <div class="overlay"></div>
 
   <!-- Cartão do Cliente -->
   <div class="card-container">
-    <!-- Imagem de Perfil com imagem genérica de fallback -->
-    <img id="fotoPerfil" class="avatar-img" src="https://via.placeholder.com/150?text=Perfil" alt="Foto de Perfil">
     
-    <h2 id="nomeCliente">Carregando...</h2>
+    <!-- Foto de Perfil -->
+    <div class="avatar-container">
+      <img id="fotoPerfil" class="avatar-img hidden" alt="Foto de Perfil">
+    </div>
+
+    <!-- Informações Básicas -->
+    <h1 id="nomeCliente" class="profile-name">Carregando...</h1>
+    <p id="cargoCliente" class="profile-title hidden"></p>
+    <p id="bioCliente" class="profile-bio hidden"></p>
+
+    <!-- Botões de Redes e Contatos -->
+    <div class="links-container">
+      <a id="btnWhatsapp" class="btn-link hidden" target="_blank">
+        💬 WhatsApp
+      </a>
+      
+      <a id="btnInstagram" class="btn-link hidden" target="_blank">
+        📸 Instagram
+      </a>
+      
+      <a id="btnLinkedin" class="btn-link hidden" target="_blank">
+        💼 LinkedIn
+      </a>
+
+      <a id="btnWebsite" class="btn-link hidden" target="_blank">
+        🌐 Website / Link
+      </a>
+    </div>
+
+    <!-- Área da Chave PIX -->
+    <div id="boxPix" class="pix-box hidden">
+      <div class="pix-title">Chave PIX</div>
+      <div id="chavePix" class="pix-key"></div>
+    </div>
+
   </div>
 
   <script>
-    // Configuração do Supabase
+    // Substitua pelas suas chaves do Supabase
     const SUPABASE_URL = 'https://ebqxskekvnyhqmigwdla.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_Ml3YnD-a-5eQx7J_oJ_Sfg_WicgJy-a';
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     async function carregarCartao() {
-      // 1. Pega o código da URL (ex: cartao.html?code=CARD-123456)
+      // 1. Pega o código da URL (ex: cartao.html?code=MEU-CODIGO)
       const urlParams = new URLSearchParams(window.location.search);
       const codigo = urlParams.get('code');
 
       if (!codigo) {
-        console.error('Código não encontrado na URL');
+        document.getElementById('nomeCliente').innerText = "Cartão não encontrado";
         return;
       }
 
-      // 2. Busca os dados no banco de dados Supabase
+      // 2. Busca todos os campos na tabela 'cartoes'
       const { data, error } = await db
         .from('cartoes')
-        .select('foto_perfil, banner_fundo, nome')
+        .select('*')
         .eq('codigo_unico', codigo)
         .single();
 
       if (error || !data) {
-        console.error('Erro ao buscar cartão:', error);
+        document.getElementById('nomeCliente').innerText = "Cartão não localizado";
+        console.error('Erro ao buscar dados:', error);
         return;
       }
 
-      // 3. Aplica a Foto de Perfil no <img>
-      if (data.foto_perfil) {
-        document.getElementById('fotoPerfil').src = data.foto_perfil;
-      }
-
-      // 4. Aplica o Banner como Plano de Fundo do <body>
+      // --- EXIBIÇÃO DAS FOTOS / BANNER ---
       if (data.banner_fundo) {
         document.body.style.backgroundImage = `url('${data.banner_fundo}')`;
       }
+      if (data.foto_perfil) {
+        const img = document.getElementById('fotoPerfil');
+        img.src = data.foto_perfil;
+        img.classList.remove('hidden');
+      }
 
-      // 5. Atualiza o nome
-      if (data.nome) {
-        document.getElementById('nomeCliente').innerText = data.nome;
+      // --- TEXTOS E BIO ---
+      document.getElementById('nomeCliente').innerText = data.nome || 'Sem Nome';
+
+      if (data.cargo) {
+        const el = document.getElementById('cargoCliente');
+        el.innerText = data.cargo;
+        el.classList.remove('hidden');
+      }
+
+      if (data.bio) {
+        const el = document.getElementById('bioCliente');
+        el.innerText = data.bio;
+        el.classList.remove('hidden');
+      }
+
+      // --- BOTÕES DE CONTATO ---
+      if (data.whatsapp) {
+        const btn = document.getElementById('btnWhatsapp');
+        // Formata número limpo para o link do WhatsApp
+        const numLimpo = data.whatsapp.replace(/\D/g, '');
+        btn.href = `https://wa.me/${numLimpo}`;
+        btn.classList.remove('hidden');
+      }
+
+      if (data.instagram) {
+        const btn = document.getElementById('btnInstagram');
+        const user = data.instagram.replace('@', '').trim();
+        btn.href = `https://instagram.com/${user}`;
+        btn.classList.remove('hidden');
+      }
+
+      if (data.linkedin) {
+        const btn = document.getElementById('btnLinkedin');
+        btn.href = data.linkedin.startsWith('http') ? data.linkedin : `https://${data.linkedin}`;
+        btn.classList.remove('hidden');
+      }
+
+      if (data.website) {
+        const btn = document.getElementById('btnWebsite');
+        btn.href = data.website.startsWith('http') ? data.website : `https://${data.website}`;
+        btn.classList.remove('hidden');
+      }
+
+      if (data.chave_pix) {
+        const box = document.getElementById('boxPix');
+        document.getElementById('chavePix').innerText = data.chave_pix;
+        box.classList.remove('hidden');
       }
     }
 
-    // Executa ao carregar a página
+    // Carrega os dados ao abrir a página
     carregarCartao();
   </script>
 </body>
