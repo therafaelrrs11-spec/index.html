@@ -6,97 +6,37 @@
   <title>Cartão Digital</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Display", sans-serif; }
+    body { background: #000; color: #fff; display: flex; justify-content: center; min-height: 100vh; background-size: cover; background-position: center; }
+    .backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(25px); z-index: 1; }
+    .card-wrapper { position: relative; z-index: 2; width: 100%; max-width: 420px; padding: 20px; text-align: center; }
     
-    body {
-      background-color: #0f172a;
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      background-attachment: fixed;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      padding: 30px 15px;
-    }
-
-    .backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.75);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      z-index: 1;
-    }
-
-    .card-wrapper {
-      position: relative;
-      z-index: 2;
-      width: 100%;
-      max-width: 420px;
-      text-align: center;
-      color: #fff;
-    }
-
-    .avatar {
-      width: 110px;
-      height: 110px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 3px solid rgba(255,255,255,0.3);
-      box-shadow: 0 8px 25px rgba(0,0,0,0.4);
-      margin-bottom: 12px;
-      display: none;
-    }
-
-    h1 {
-      font-size: 1.6rem;
-      font-weight: 700;
-      margin-bottom: 18px;
-    }
-
+    /* Design Estilo iOS Glassmorphism */
+    .avatar { width: 110px; height: 110px; border-radius: 50%; object-fit: cover; border: 3px solid rgba(255,255,255,0.3); margin-top: 40px; }
+    h1 { font-size: 1.5rem; font-weight: 700; margin-top: 12px; }
+    
     .ios-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      width: 100%;
-      padding: 16px;
-      margin-top: 12px;
+      display: flex; align-items: center; justify-content: center; gap: 12px;
+      width: 100%; padding: 16px; margin-top: 12px;
       background: rgba(255, 255, 255, 0.12);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
       border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 16px;
-      color: #fff;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 0.95rem;
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-      transition: transform 0.2s, background 0.2s;
+      border-radius: 20px; color: #fff; text-decoration: none; font-weight: 600;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); transition: transform 0.2s;
     }
     .ios-btn:active { transform: scale(0.98); }
-    .ios-btn-whatsapp { background: #25D366; color: #fff; border: none; font-size: 1rem; }
+    .ios-btn-whatsapp { background: #25D366; color: #fff; border: none; }
 
     .gallery { margin-top: 30px; text-align: left; }
-    .gallery-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 10px; color: rgba(255,255,255,0.9); }
-    .gallery-item {
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 16px;
-      overflow: hidden;
-      margin-top: 15px;
-      border: 1px solid rgba(255,255,255,0.15);
-      backdrop-filter: blur(10px);
-    }
-    .gallery-item img, .gallery-item video { width: 100%; display: block; max-height: 350px; object-fit: cover; }
-    .gallery-item p { padding: 14px; font-size: 0.95rem; font-weight: 600; color: #fff; }
+    .gallery-item { background: rgba(255, 255, 255, 0.08); border-radius: 16px; overflow: hidden; margin-top: 15px; border: 1px solid rgba(255,255,255,0.1); }
+    .gallery-item img, .gallery-item video { width: 100%; display: block; }
+    .gallery-item p { padding: 12px; font-size: 0.9rem; font-weight: 500; }
   </style>
 </head>
 <body>
 <div class="backdrop"></div>
 <div class="card-wrapper">
-  <img id="avatar" class="avatar" alt="Foto de Perfil">
+  <img id="avatar" class="avatar" src="https://via.placeholder.com/150">
   <h1 id="nome">Carregando...</h1>
 
   <!-- Botão WhatsApp -->
@@ -110,79 +50,45 @@
 </div>
 
 <script>
-  // COLOQUE SUAS CHAVES DO SUPABASE AQUI
   const SUPABASE_URL = 'https://ebqxskekvnyhqmigwdla.supabase.co';
-  const SUPABASE_ANON_KEY = 'sb_publishable_Ml3YnD-a-5eQx7J_oJ_Sfg_WicgJy-a';
+  const SUPABASE_ANON_KEY = 'https://ebqxskekvnyhqmigwdla.supabase.co';
   const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const code = new URLSearchParams(window.location.search).get('code');
 
-  const ICONES = {
-    instagram: '📸 Instagram',
-    facebook: '📘 Facebook',
-    linkedin: '💼 LinkedIn',
-    tiktok: '🎵 TikTok',
-    youtube: '📺 YouTube',
-    site: '🌐 Website'
-  };
-
   async function render() {
-    if (!code) {
-      document.getElementById('nome').innerText = 'Código do cartão não informado!';
-      return;
-    }
+    if (!code) return;
+    const { data } = await db.from('cartoes').select('*').eq('codigo_unico', code).single();
+    if (!data) return;
 
-    const { data, error } = await db.from('cartoes').select('*').eq('codigo_unico', code).single();
-    
-    if (error || !data) {
-      document.getElementById('nome').innerText = 'Cartão não localizado';
-      console.error(error);
-      return;
-    }
-
-    // 1. Banner de Fundo
-    if (data.banner_fundo) {
-      document.body.style.backgroundImage = `url('${data.banner_fundo}')`;
-    }
-
-    // 2. Foto de Perfil
-    if (data.foto_perfil) {
-      const avatarEl = document.getElementById('avatar');
-      avatarEl.src = data.foto_perfil;
-      avatarEl.style.display = 'inline-block';
-    }
-
-    // 3. Nome
+    if (data.banner_fundo) document.body.style.backgroundImage = `url('${data.banner_fundo}')`;
+    if (data.foto_perfil) document.getElementById('avatar').src = data.foto_perfil;
     document.getElementById('nome').innerText = data.nome || '';
 
-    // 4. WhatsApp
+    // WhatsApp Action
     if (data.whatsapp) {
-      const numLimpo = data.whatsapp.replace(/\D/g, '');
       document.getElementById('waBox').innerHTML = `
-        <a href="https://wa.me/${numLimpo}" target="_blank" class="ios-btn ios-btn-whatsapp">
-          💬 Adicionar aos Contatos / WhatsApp
+        <a href="https://wa.me/${data.whatsapp}" target="_blank" class="ios-btn ios-btn-whatsapp">
+          💬 Adicionar Contato / WhatsApp
         </a>
       `;
     }
 
-    // 5. Redes Sociais
+    // Social Links
     const socialBox = document.getElementById('socialBox');
-    if (data.links_sociais && data.links_sociais.length > 0) {
+    if (data.links_sociais) {
       data.links_sociais.forEach(s => {
-        const label = ICONES[s.rede] || `🔗 ${s.rede.toUpperCase()}`;
-        const urlFormatada = s.url.startsWith('http') ? s.url : `https://${s.url}`;
         socialBox.innerHTML += `
-          <a href="${urlFormatada}" target="_blank" class="ios-btn">
-            ${label}
+          <a href="${s.url}" target="_blank" class="ios-btn">
+            🔗 ${s.rede.toUpperCase()}
           </a>
         `;
       });
     }
 
-    // 6. Galeria de Produtos e Serviços
+    // Showcase Products
     const galleryBox = document.getElementById('galleryBox');
-    if (data.produtos_servicos && data.produtos_servicos.length > 0) {
-      galleryBox.innerHTML = `<div class="gallery-title">Produtos & Serviços</div>`;
+    if (data.produtos_servicos) {
       data.produtos_servicos.forEach(p => {
         const mediaTag = p.tipo === 'video' 
           ? `<video src="${p.url}" controls></video>`
